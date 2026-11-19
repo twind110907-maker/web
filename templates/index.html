@@ -31,8 +31,6 @@
             transition: 0.2s;
         }
         .btn-download:hover { background: var(--accent); color: #0b0f19; }
-
-        /* KPI Grid */
         .kpi-grid {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 16px; margin-bottom: 24px;
@@ -45,8 +43,6 @@
         .val-blue { color: var(--accent); }
         .val-green { color: var(--green); }
         .val-red { color: var(--red); }
-
-        /* Card chung */
         .card {
             background: var(--card); border: 1px solid var(--border); border-radius: 14px;
             padding: 20px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.35);
@@ -57,8 +53,6 @@
         }
         .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text); }
         video { width: 100%; border-radius: 10px; border: 1px solid #1e293b; background: #000; }
-
-        /* Filter buttons & Table */
         .filters { display: flex; gap: 8px; }
         .filter-btn {
             background: #1e293b; color: var(--text); border: 1px solid #334155;
@@ -161,6 +155,10 @@
         document.querySelectorAll('#abnormal-body tr').forEach(tr => {
             tr.style.display = (tag === 'all' || tr.dataset.tag === tag) ? '' : 'none';
         });
+    }
+</script>
+</body>
+</html>
     }
 </script>
 </body>
