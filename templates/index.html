@@ -53,6 +53,18 @@
         }
         .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text); }
         video { width: 100%; border-radius: 10px; border: 1px solid #1e293b; background: #000; }
+        .charts-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 18px;
+        }
+        .chart-box {
+            background: #0f172a; padding: 12px; border-radius: 10px; border: 1px solid #1e293b;
+        }
+        .chart-box p {
+            color: #38bdf8; font-weight: 600; margin-bottom: 10px; font-size: 0.9rem;
+        }
+        .chart-box img {
+            width: 100%; border-radius: 6px; display: block;
+        }
         .filters { display: flex; gap: 8px; }
         .filter-btn {
             background: #1e293b; color: var(--text); border: 1px solid #334155;
@@ -110,6 +122,22 @@
 
     <div class="card">
         <div class="card-header">
+            <div class="card-title">📈 Biểu đồ Thống kê Phân tán Theo Tháng & Phân bố Tần số (Histogram)</div>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-box">
+                <p>1. Độ lệch chuẩn & Biểu đồ hộp (Boxplot) 12 Tháng</p>
+                <img src="/charts/1_bieu_do_thang_bar_boxplot.png" alt="Biểu đồ tháng và Boxplot">
+            </div>
+            <div class="chart-box">
+                <p>2. Phân bố tần số giá 2 Quý đầu vs 2 Quý cuối</p>
+                <img src="/charts/4_histogram_nua_dau_nua_cuoi.png" alt="Biểu đồ Histogram">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
             <div class="card-title">⚡ Danh sách Phiên Giao dịch Chạm Trần / Chạm Sàn ({{ abnormal_rows|length }} phiên)</div>
             <div class="filters">
                 <button class="filter-btn active" onclick="filterRows('all', this)">Tất cả</button>
@@ -155,10 +183,6 @@
         document.querySelectorAll('#abnormal-body tr').forEach(tr => {
             tr.style.display = (tag === 'all' || tr.dataset.tag === tag) ? '' : 'none';
         });
-    }
-</script>
-</body>
-</html>
     }
 </script>
 </body>
