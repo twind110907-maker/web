@@ -1,93 +1,167 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Mô phỏng biến động giá của một mã chứng khoán bằng Python">
-    <title>Mô phỏng Giá Chứng Khoán</title>
-    
-    <!-- Gợi ý: Thêm font chữ hiện đại (như Inter) để UI đẹp hơn -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mô phỏng & Phân tích Biến động Giá Chứng khoán</title>
+    <style>
+        :root {
+            --bg: #0b0f19;
+            --card: #111827;
+            --border: #1e293b;
+            --accent: #38bdf8;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --green: #22c55e;
+            --red: #ef4444;
+            --purple: #c084fc;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 24px 16px 48px; }
+        .container { max-width: 1120px; margin: 0 auto; }
+        header {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+        }
+        header h1 { font-size: 1.5rem; color: var(--accent); }
+        header p { color: var(--muted); font-size: 0.9rem; margin-top: 4px; }
+        .btn-download {
+            background: rgba(56, 189, 248, 0.12); color: var(--accent); border: 1px solid var(--accent);
+            padding: 8px 16px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .btn-download:hover { background: var(--accent); color: #0b0f19; }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px; margin-bottom: 24px;
+        }
+        .kpi-card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px;
+        }
+        .kpi-label { color: var(--muted); font-size: 0.85rem; margin-bottom: 6px; }
+        .kpi-value { font-size: 1.45rem; font-weight: 700; }
+        .val-blue { color: var(--accent); }
+        .val-green { color: var(--green); }
+        .val-red { color: var(--red); }
+
+        /* Card chung */
+        .card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+            padding: 20px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+        }
+        .card-header {
+            display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+            gap: 12px; margin-bottom: 16px;
+        }
+        .card-title { font-size: 1.15rem; font-weight: 700; color: var(--text); }
+        video { width: 100%; border-radius: 10px; border: 1px solid #1e293b; background: #000; }
+
+        /* Filter buttons & Table */
+        .filters { display: flex; gap: 8px; }
+        .filter-btn {
+            background: #1e293b; color: var(--text); border: 1px solid #334155;
+            padding: 6px 14px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: 600;
+        }
+        .filter-btn.active { background: var(--accent); color: #0b0f19; border-color: var(--accent); }
+        .table-wrap { max-height: 360px; overflow-y: auto; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid var(--border); }
+        th { background: #0f172a; color: var(--accent); position: sticky; top: 0; }
+        tr:hover { background: rgba(255,255,255,0.03); }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge-ceil { background: rgba(192, 132, 252, 0.15); color: var(--purple); }
+        .badge-floor { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+    </style>
 </head>
 <body>
-    <!-- Khu vực Header (Hero) -->
-    <header class="hero">
-        <div class="container text-center">
-            <span class="eyebrow tag">PHÂN TÍCH TÀI CHÍNH BẰNG PYTHON</span>
-            <h1>Mô phỏng Biến động Giá Chứng khoán</h1>
-            <p class="subtitle">Quan sát sự thay đổi, xu hướng giá và rủi ro của cổ phiếu theo thời gian dựa trên các mô hình ngẫu nhiên (Monte Carlo / Random Walk).</p>
+<div class="container">
+    <header>
+        <div>
+            <h1>Mô phỏng & Phân tích Biến động Giá Chứng khoán</h1>
+            <p>SVTH: Trần Trương Gia Minh (3110525019 - 25CKDL) | GVHD: Phan Trần Đức Minh | Dữ liệu: abc-19.csv ({{ kpis.total_days }} phiên)</p>
         </div>
+        <a href="/static/video/abc-19.csv" download class="btn-download">⬇ Tải dữ liệu abc-19.csv</a>
     </header>
 
-    <!-- Khu vực Nội dung chính -->
-    <main class="container grid layout-2-cols">
-        
-        <!-- Cột 1: Video mô phỏng biểu đồ -->
-        <section class="card video-card shadow-sm" aria-labelledby="video-title">
-            <header class="card-header">
-                <h2 id="video-title" class="flex-align-center">
-                    <!-- Icon Biểu đồ -->
-                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                    </svg>
-                    Video / Biểu đồ Mô phỏng
-                </h2>
-            </header>
-            
-            <div class="card-body">
-                {% if video_available %}
-                <div class="video-wrapper">
-                    <video controls playsinline preload="metadata" aria-label="Video mô phỏng biến động giá cổ phiếu">
-                        <source src="{{ url_for('static', path='/video/dothi.mp4') }}" type="video/mp4">
-                        Trình duyệt của bạn không hỗ trợ video HTML5. Vui lòng nâng cấp trình duyệt.
-                    </video>
-                </div>
-                {% else %}
-                <!-- Giao diện khi thiếu video được làm đẹp hơn -->
-                <div class="video-missing alert alert-warning" role="alert">
-                    <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                    </svg>
-                    <div class="alert-content">
-                        <strong>Chưa tìm thấy dữ liệu mô phỏng</strong>
-                        <p>Vui lòng thêm file <code>dothi.mp4</code> vào thư mục <code>static/video/</code> để bật phát.</p>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </section>
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Giá mở cửa đầu kỳ (01/01)</div>
+            <div class="kpi-value val-blue">{{ kpis.open_first }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Đỉnh cao nhất năm (Tháng 02)</div>
+            <div class="kpi-value val-green">{{ kpis.max_price }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Đáy thấp nhất năm (Quý 4)</div>
+            <div class="kpi-value val-red">{{ kpis.min_price }}</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Tỷ suất biến động cả năm</div>
+            <div class="kpi-value val-red">{{ kpis.pct_change }}</div>
+        </div>
+    </div>
 
-        <!-- Cột 2: Hướng dẫn quan sát (Phân tích) -->
-        <aside class="card instruction-card shadow-sm" aria-labelledby="observation-title">
-            <header class="card-header">
-                <h2 id="observation-title" class="flex-align-center">
-                    <!-- Icon Focus -->
-                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    Tiêu điểm Cần quan sát
-                </h2>
-            </header>
-            
-            <div class="card-body">
-                <ul class="observation-list custom-list">
-                    <li>
-                        <strong>Biến động giá (Volatility):</strong> 
-                        <span>Theo dõi biên độ dao động của giá qua từng phiên giao dịch trong các kịch bản khác nhau.</span>
-                    </li>
-                    <li>
-                        <strong>Xu hướng (Trend):</strong> 
-                        <span>Quan sát xu hướng chung, xác định các vùng hỗ trợ, kháng cự và các điểm đảo chiều tiềm năng.</span>
-                    </li>
-                    <li>
-                        <strong>Phân tích rủi ro (Risk Analysis):</strong> 
-                        <span>Đánh giá xác suất giá chạm các ngưỡng cắt lỗ (stop-loss) hoặc chốt lời (take-profit) kỳ vọng.</span>
-                    </li>
-                </ul>
-            </div>
-        </aside>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">📊 Video Mô phỏng Biểu đồ Nến & Dải Biên độ (High - Low)</div>
+        </div>
+        <video controls autoplay muted loop>
+            <source src="/static/video/dothi.mp4" type="video/mp4">
+            Trình duyệt của bạn không hỗ trợ phát video.
+        </video>
+    </div>
 
-    </main>
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title">⚡ Danh sách Phiên Giao dịch Chạm Trần / Chạm Sàn ({{ abnormal_rows|length }} phiên)</div>
+            <div class="filters">
+                <button class="filter-btn active" onclick="filterRows('all', this)">Tất cả</button>
+                <button class="filter-btn" onclick="filterRows('ceil', this)">Chạm Trần (+10%)</button>
+                <button class="filter-btn" onclick="filterRows('floor', this)">Chạm Sàn (-10%)</button>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày giao dịch</th>
+                        <th>Giá tham chiếu (VND)</th>
+                        <th>Giá đóng cửa (VND)</th>
+                        <th>Biên độ ngày (VND)</th>
+                        <th>Trạng thái biên độ</th>
+                    </tr>
+                </thead>
+                <tbody id="abnormal-body">
+                    {% for row in abnormal_rows %}
+                    <tr data-tag="{{ row.tag }}">
+                        <td>{{ row.date }}</td>
+                        <td>{{ row.ref }}</td>
+                        <td><strong>{{ row.close }}</strong></td>
+                        <td>{{ row.range }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-ceil' if row.tag == 'ceil' else 'badge-floor' }}">
+                                {{ row.status }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterRows(tag, btn) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('#abnormal-body tr').forEach(tr => {
+            tr.style.display = (tag === 'all' || tr.dataset.tag === tag) ? '' : 'none';
+        });
+    }
+</script>
 </body>
 </html>
